@@ -1,0 +1,11 @@
+nameOverride: coupon-hub-merchant-admin
+
+service:
+  type: ClusterIP
+  port: 10010
+  targetPort: 10010
+
+env:
+  SPRING_PROFILES_ACTIVE: dev
+  NACOS_SERVER_ADDR: nacos-dev-nacos.infra-dev.svc.cluster.local:8848
+  NACOS_NAMESPACE: coupon-hub-dev

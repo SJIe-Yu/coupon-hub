@@ -1,0 +1,24 @@
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+image:
+  repository: ghcr.io/owner/coupon-hub-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+service:
+  type: ClusterIP
+  port: 10000
+  targetPort: 10000
+  nodePort: null
+
+env:
+  SPRING_PROFILES_ACTIVE: dev
+  NACOS_SERVER_ADDR: nacos-dev.infra-dev.svc.cluster.local:8848
+  NACOS_NAMESPACE: coupon-hub-dev
+
+resources: {}

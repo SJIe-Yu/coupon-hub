@@ -1,0 +1,3 @@
+rocketmq:
+  producer:
+    group: coupon-hub-search${unique-name:}-service-common-message-execute-pg

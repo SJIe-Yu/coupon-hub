@@ -1,0 +1,18 @@
+environment: dev
+database:
+  type: mysql
+  mysql:
+    host: mysql-dev-mysql.infra-dev.svc.cluster.local
+    port: 3306
+    database: nacos_config
+    username: nacos
+    password: nacos123456
+service:
+  type: NodePort
+  nodePorts:
+    http: 30848
+    clientRpc: 30948
+    raftRpc: 30949
+persistence:
+  enabled: false
+resources: {}

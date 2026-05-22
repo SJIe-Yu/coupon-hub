@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "canal.fullname" . }}-config
+  labels:
+    {{- include "canal.labels" . | nindent 4 }}
+data:
+  canal.properties: |
+    canal.id = 1
+    canal.ip =
+    canal.port = 11111
+    canal.metrics.pull.port = 11112
+    canal.zkServers =
+    canal.withoutNetty = false
+    canal.serverMode = tcp
+    canal.destinations = example
+    canal.auto.scan = false
+    canal.auto.scan.interval = 5
+    canal.instance.global.mode = spring
+    canal.instance.global.lazy = false
+    canal.instance.global.spring.xml = classpath:spring/default-instance.xml
+  instance.properties: |
+    canal.instance.mysql.slaveId = {{ .Values.mysql.slaveId }}
+    canal.instance.master.address = {{ .Values.mysql.host }}:{{ .Values.mysql.port }}
+    canal.instance.master.journal.name =
+    canal.instance.master.position =
+    canal.instance.master.timestamp =
+    canal.instance.master.gtid =
+    canal.instance.dbUsername = {{ .Values.mysql.username }}
+    canal.instance.dbPassword = {{ .Values.mysql.password }}
+    canal.instance.connectionCharset = UTF-8
+    canal.instance.defaultDatabaseName =
+    canal.instance.filter.regex = {{ .Values.mysql.filterRegex }}
+    canal.instance.filter.black.regex = mysql\\.slave_.*
+    canal.instance.tsdb.enable = true
+    canal.instance.gtidon = false
+

@@ -1,0 +1,6 @@
+xxl-job:
+  access-token: default_token
+  admin:
+    addresses: http://192.168.252.4:30090/xxl-job-admin
+  executor:
+    log-retention-days: 30

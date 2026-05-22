@@ -1,0 +1,32 @@
+server:
+  port: 10020
+
+spring:
+  application:
+    name: coupon-hub-engine${unique-name:}
+  config:
+    import:
+      - optional:nacos:coupon-hub-redis-dev.yaml?group=COUPON_HUB_GROUP&refreshEnabled=true
+      - optional:nacos:coupon-hub-rocketmq-dev.yaml?group=COUPON_HUB_GROUP&refreshEnabled=true
+      - optional:nacos:coupon-hub-springdoc-dev.yaml?group=COUPON_HUB_GROUP&refreshEnabled=true
+      - optional:nacos:coupon-hub-knife4j-dev.yaml?group=COUPON_HUB_GROUP&refreshEnabled=true
+      - optional:nacos:coupon-hub-engine-dev.yaml?group=COUPON_HUB_GROUP&refreshEnabled=true
+  datasource:
+    driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
+    url: jdbc:shardingsphere:classpath:shardingsphere-config.yaml
+  cloud:
+    nacos:
+      discovery:
+        server-addr: ${NACOS_SERVER_ADDR:192.168.252.4:30848}
+        namespace: ${NACOS_NAMESPACE:coupon-hub-dev}
+        group: COUPON_HUB_GROUP
+      config:
+        server-addr: ${NACOS_SERVER_ADDR:192.168.252.4:30848}
+        namespace: ${NACOS_NAMESPACE:coupon-hub-dev}
+        group: COUPON_HUB_GROUP
+        file-extension: yaml
+      password: ${NACOS_PASSWORD:123456}
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

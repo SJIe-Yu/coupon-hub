@@ -1,0 +1,9 @@
+rocketmq:
+  producer:
+    group: coupon-hub-engine${unique-name:}-service-common-message-execute-pg
+
+coupon-hub:
+  user-coupon-list:
+    save-cache:
+      # 有两个选项：direct 在流程里直接操作，binlog 通过解析数据库日志后操作。
+      type: direct

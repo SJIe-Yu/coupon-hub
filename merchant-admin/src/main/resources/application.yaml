@@ -1,0 +1,5 @@
+spring:
+  profiles:
+    # 激活环境：dev (开发), prod (生产)
+    # 在生产环境部署时，通常通过 java -jar app.jar --spring.profiles.active=prod 来覆盖
+    active: dev

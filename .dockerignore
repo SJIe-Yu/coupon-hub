@@ -1,0 +1,7 @@
+.git
+.github
+.idea
+.log
+**/target
+**/.DS_Store
+resources/PlantUML

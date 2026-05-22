@@ -1,0 +1,32 @@
+package edu.seu.couponhub.distribution.service.impl;
+
+import edu.seu.couponhub.distribution.common.enums.SendMessageMarkCovertEnum;
+import edu.seu.couponhub.distribution.dto.req.MessageSendReqDTO;
+import edu.seu.couponhub.distribution.dto.resp.MessageSendRespDTO;
+import edu.seu.couponhub.distribution.service.MessageSendService;
+import edu.seu.couponhub.distribution.service.basics.DistributionExecuteStrategy;
+import org.springframework.stereotype.Service;
+
+/**
+ * 短信消息发送接口实现类
+ * 正常来说这应该有个独立消息服务，因为消息通知不在优惠券系统核心范畴，所以仅展示流程
+ * <p>
+ */
+@Service
+public class SMSMessageSendServiceImpl implements MessageSendService, DistributionExecuteStrategy<MessageSendReqDTO, MessageSendRespDTO> {
+
+    @Override
+    public MessageSendRespDTO sendMessage(MessageSendReqDTO requestParam) {
+        return null;
+    }
+
+    @Override
+    public String mark() {
+        return SendMessageMarkCovertEnum.SMS.name();
+    }
+
+    @Override
+    public MessageSendRespDTO executeResp(MessageSendReqDTO requestParam) {
+        return sendMessage(requestParam);
+    }
+}

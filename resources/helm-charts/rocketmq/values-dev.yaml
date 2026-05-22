@@ -1,0 +1,27 @@
+environment: dev
+
+nameserver:
+  replicaCount: 1
+  service:
+    type: NodePort
+    nodePort: 30987
+
+broker:
+  replicaCount: 1
+  autoCreateTopicEnable: true
+  service:
+    type: NodePort
+    nodePorts:
+      remoting: 30911
+      fast: 30909
+      ha: 30912
+  persistence:
+    enabled: false
+  resources: {}
+
+dashboard:
+  enabled: true
+  service:
+    type: NodePort
+    nodePort: 30080
+  resources: {}

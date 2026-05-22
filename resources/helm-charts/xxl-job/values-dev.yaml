@@ -1,0 +1,15 @@
+environment: dev
+
+database:
+  host: mysql-dev-mysql.infra-dev.svc.cluster.local
+  port: 3306
+  database: xxl_job
+  username: xxl_job
+  password: xxl_job123456
+
+service:
+  type: NodePort
+  nodePort: 30090
+
+resources: {}
+

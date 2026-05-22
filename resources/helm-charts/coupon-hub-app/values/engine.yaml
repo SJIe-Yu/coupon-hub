@@ -1,0 +1,11 @@
+nameOverride: coupon-hub-engine
+
+service:
+  type: ClusterIP
+  port: 10020
+  targetPort: 10020
+
+env:
+  SPRING_PROFILES_ACTIVE: dev
+  NACOS_SERVER_ADDR: nacos-dev-nacos.infra-dev.svc.cluster.local:8848
+  NACOS_NAMESPACE: coupon-hub-dev

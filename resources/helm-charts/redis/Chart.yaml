@@ -1,0 +1,7 @@
+apiVersion: v2
+name: redis
+description: Single-node Redis for local k3s.
+type: application
+version: 0.1.0
+appVersion: "7.2"
+

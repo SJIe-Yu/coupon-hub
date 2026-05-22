@@ -1,0 +1,28 @@
+environment: dev
+
+image:
+  repository: canal/canal-server
+  tag: v1.1.8-arm64
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+replicaCount: 1
+
+mysql:
+  host: ""
+  port: 3306
+  username: canal
+  password: canal123456
+  slaveId: 1234
+  filterRegex: "coupon_hub_.*\\..*"
+
+service:
+  type: ClusterIP
+  canalPort: 11111
+  metricsPort: 11112
+  nodePorts:
+    canal: null
+    metrics: null
+
+resources: {}

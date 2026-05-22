@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rocketmq.fullname" . }}-broker
+  labels:
+    {{- include "rocketmq.labels" . | nindent 4 }}
+    app.kubernetes.io/component: broker
+spec:
+  replicas: {{ .Values.broker.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: broker
+  template:
+    metadata:
+      labels:
+        {{- include "rocketmq.labels" . | nindent 8 }}
+        app.kubernetes.io/component: broker
+    spec:
+      containers:
+        - name: broker
+          image: {{ .Values.broker.image | quote }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          command: ["sh", "-c", "/home/rocketmq/rocketmq-*/bin/mqbroker -c /etc/rocketmq/broker.conf"]
+          ports:
+            - name: fast
+              containerPort: 10909
+            - name: remoting
+              containerPort: 10911
+            - name: ha
+              containerPort: 10912
+          volumeMounts:
+            - name: broker-config
+              mountPath: /etc/rocketmq
+            - name: broker-store
+              mountPath: /home/rocketmq/store
+          resources:
+            {{- toYaml .Values.broker.resources | nindent 12 }}
+      volumes:
+        - name: broker-config
+          configMap:
+            name: {{ include "rocketmq.fullname" . }}-broker-config
+        - name: broker-store
+          {{- if .Values.broker.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "rocketmq.fullname" . }}-broker-store
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rocketmq.fullname" . }}-broker
+  labels:
+    {{- include "rocketmq.labels" . | nindent 4 }}
+    app.kubernetes.io/component: broker
+spec:
+  type: {{ .Values.broker.service.type }}
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: broker
+  ports:
+    - name: fast
+      port: {{ .Values.broker.service.fastPort }}
+      targetPort: fast
+      {{- if and (eq .Values.broker.service.type "NodePort") .Values.broker.service.nodePorts.fast }}
+      nodePort: {{ .Values.broker.service.nodePorts.fast }}
+      {{- end }}
+    - name: remoting
+      port: {{ .Values.broker.service.remotingPort }}
+      targetPort: remoting
+      {{- if and (eq .Values.broker.service.type "NodePort") .Values.broker.service.nodePorts.remoting }}
+      nodePort: {{ .Values.broker.service.nodePorts.remoting }}
+      {{- end }}
+    - name: ha
+      port: {{ .Values.broker.service.haPort }}
+      targetPort: ha
+      {{- if and (eq .Values.broker.service.type "NodePort") .Values.broker.service.nodePorts.ha }}
+      nodePort: {{ .Values.broker.service.nodePorts.ha }}
+      {{- end }}
+

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>edu.seu.couponhub</groupId>
+        <artifactId>coupon-hub-all</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>coupon-hub-database-migration</artifactId>
+    <name>coupon-hub-database-migration</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mysql</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>migrate</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.flywaydb</groupId>
+                        <artifactId>flyway-maven-plugin</artifactId>
+                        <version>${flyway-maven-plugin.version}</version>
+                        <configuration>
+                            <user>${db.user}</user>
+                            <password>${db.password}</password>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>migrate-merchant-admin</id>
+                                <goals><goal>migrate</goal></goals>
+                                <configuration>
+                                    <url>jdbc:mysql://${db.host}:${db.port}/mysql?allowMultiQueries=true&amp;useSSL=false&amp;allowPublicKeyRetrieval=true</url>
+                                    <schemas>
+                                        <schema>coupon_hub_merchant_0</schema>
+                                    </schemas>
+                                    <createSchemas>true</createSchemas>
+                                    <locations>
+                                        <location>classpath:db/migration/merchant-admin</location>
+                                    </locations>
+                                    <baselineOnMigrate>true</baselineOnMigrate>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>migrate-engine</id>
+                                <goals><goal>migrate</goal></goals>
+                                <configuration>
+                                    <url>jdbc:mysql://${db.host}:${db.port}/mysql?allowMultiQueries=true&amp;useSSL=false&amp;allowPublicKeyRetrieval=true</url>
+                                    <schemas>
+                                        <schema>coupon_hub_engine_0</schema>
+                                    </schemas>
+                                    <createSchemas>true</createSchemas>
+                                    <locations>
+                                        <location>classpath:db/migration/engine</location>
+                                    </locations>
+                                    <baselineOnMigrate>true</baselineOnMigrate>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>migrate-settlement</id>
+                                <goals><goal>migrate</goal></goals>
+                                <configuration>
+                                    <url>jdbc:mysql://${db.host}:${db.port}/mysql?allowMultiQueries=true&amp;useSSL=false&amp;allowPublicKeyRetrieval=true</url>
+                                    <schemas>
+                                        <schema>coupon_hub_settlement_0</schema>
+                                    </schemas>
+                                    <createSchemas>true</createSchemas>
+                                    <locations>
+                                        <location>classpath:db/migration/settlement</location>
+                                    </locations>
+                                    <baselineOnMigrate>true</baselineOnMigrate>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <properties>
+        <flyway-maven-plugin.version>9.5.1</flyway-maven-plugin.version>
+        <db.host>localhost</db.host>
+        <db.port>3306</db.port>
+        <db.user>root</db.user>
+        <db.password></db.password>
+    </properties>
+</project>

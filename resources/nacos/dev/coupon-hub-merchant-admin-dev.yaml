@@ -1,0 +1,9 @@
+rocketmq:
+  producer:
+    group: coupon-hub-merchant-admin${unique-name:}-service-common-message-execute-pg
+
+xxl-job:
+  executor:
+    application-name: coupon-hub-merchant-admin
+    ip: 192.168.252.4
+    port: 19999

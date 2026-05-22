@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "canal.fullname" . }}
+  labels:
+    {{- include "canal.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: {{ include "canal.name" . }}
+  template:
+    metadata:
+      labels:
+        {{- include "canal.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: canal-server
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: canal
+              containerPort: 11111
+            - name: metrics
+              containerPort: 11112
+          volumeMounts:
+            - name: config
+              mountPath: /home/admin/canal-server/conf/canal.properties
+              subPath: canal.properties
+            - name: config
+              mountPath: /home/admin/canal-server/conf/example/instance.properties
+              subPath: instance.properties
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "canal.fullname" . }}-config
+

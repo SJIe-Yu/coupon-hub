@@ -1,0 +1,4 @@
+spring:
+  # 为了极速安装和本地调试，开发环境 ES 不设置密码。
+  elasticsearch:
+    uris: 127.0.0.1:9200

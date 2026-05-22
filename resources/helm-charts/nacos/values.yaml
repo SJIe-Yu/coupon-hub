@@ -1,0 +1,40 @@
+environment: dev
+
+image:
+  repository: nacos/nacos-server
+  tag: v2.3.2-slim
+  pullPolicy: IfNotPresent
+
+javaOpts: "-Xms512m -Xmx512m -Xmn256m -Dnacos.standalone=true -XX:-UseContainerSupport"
+
+nameOverride: ""
+fullnameOverride: ""
+replicaCount: 1
+
+database:
+  type: embedded
+  mysql:
+    host: ""
+    port: 3306
+    database: nacos_config
+    username: nacos
+    password: nacos123456
+    existingSecret: ""
+    params: "characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useUnicode=true&useSSL=false&serverTimezone=UTC"
+
+service:
+  type: ClusterIP
+  httpPort: 8848
+  clientRpcPort: 9848
+  raftRpcPort: 9849
+  nodePorts:
+    http: null
+    clientRpc: null
+    raftRpc: null
+
+persistence:
+  enabled: false
+  size: 2Gi
+  storageClass: ""
+
+resources: {}

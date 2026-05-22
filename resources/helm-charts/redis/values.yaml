@@ -1,0 +1,27 @@
+environment: dev
+
+image:
+  repository: redis
+  tag: 7.2-alpine
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+replicaCount: 1
+
+auth:
+  enabled: false
+  password: ""
+
+service:
+  type: ClusterIP
+  port: 6379
+  nodePort: null
+
+persistence:
+  enabled: false
+  size: 2Gi
+  storageClass: ""
+
+resources: {}
+

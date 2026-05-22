@@ -1,0 +1,7 @@
+apiVersion: v2
+name: canal
+description: Canal server for MySQL binlog subscription.
+type: application
+version: 0.1.0
+appVersion: "1.1.8"
+

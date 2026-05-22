@@ -1,0 +1,7 @@
+apiVersion: v2
+name: xxl-job
+description: XXL-Job admin console for local k3s.
+type: application
+version: 0.1.0
+appVersion: "2.4.1"
+

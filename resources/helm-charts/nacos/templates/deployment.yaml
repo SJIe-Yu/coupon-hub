@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "nacos.fullname" . }}
+  labels:
+    {{- include "nacos.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/name: {{ include "nacos.name" . }}
+  template:
+    metadata:
+      labels:
+        {{- include "nacos.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: nacos
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: MODE
+              value: standalone
+            - name: PREFER_HOST_MODE
+              value: hostname
+            - name: JAVA_OPTS
+              value: {{ .Values.javaOpts | quote }}
+            - name: SPRING_DATASOURCE_PLATFORM
+              value: {{ .Values.database.type | quote }}
+            {{- if eq .Values.database.type "mysql" }}
+            - name: MYSQL_SERVICE_HOST
+              value: {{ .Values.database.mysql.host | quote }}
+            - name: MYSQL_SERVICE_PORT
+              value: {{ .Values.database.mysql.port | quote }}
+            - name: MYSQL_SERVICE_DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "nacos.databaseSecretName" . }}
+                  key: database
+            - name: MYSQL_SERVICE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "nacos.databaseSecretName" . }}
+                  key: username
+            - name: MYSQL_SERVICE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "nacos.databaseSecretName" . }}
+                  key: password
+            - name: MYSQL_SERVICE_DB_PARAM
+              value: {{ .Values.database.mysql.params | quote }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 8848
+            - name: client-rpc
+              containerPort: 9848
+            - name: raft-rpc
+              containerPort: 9849
+          volumeMounts:
+            - name: data
+              mountPath: /home/nacos/data
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "nacos.fullname" . }}-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

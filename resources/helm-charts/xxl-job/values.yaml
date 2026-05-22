@@ -1,0 +1,30 @@
+environment: dev
+
+image:
+  repository: wangpenghua/xxl-job-admin
+  tag: "2.4.1"
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 8080
+  nodePort: null
+
+database:
+  host: ""
+  port: 3306
+  database: xxl_job
+  username: xxl_job
+  password: xxl_job123456
+
+admin:
+  contextPath: /xxl-job-admin
+  accessToken: default_token
+  logRetentionDays: 30
+
+resources: {}
+

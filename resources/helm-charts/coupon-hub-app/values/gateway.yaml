@@ -1,0 +1,12 @@
+nameOverride: coupon-hub-gateway
+
+service:
+  type: NodePort
+  port: 10000
+  targetPort: 10000
+  nodePort: 31000
+
+env:
+  SPRING_PROFILES_ACTIVE: dev
+  NACOS_SERVER_ADDR: nacos-dev-nacos.infra-dev.svc.cluster.local:8848
+  NACOS_NAMESPACE: coupon-hub-dev

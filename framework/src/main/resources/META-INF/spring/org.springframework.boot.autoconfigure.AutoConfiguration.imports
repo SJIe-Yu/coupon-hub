@@ -1,0 +1,3 @@
+edu.seu.couponhub.framework.config.WebAutoConfiguration
+edu.seu.couponhub.framework.config.IdempotentConfiguration
+edu.seu.couponhub.framework.config.CacheConfiguration

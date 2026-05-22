@@ -1,0 +1,41 @@
+ARG SERVICE_MODULE
+ARG SERVICE_ARTIFACT
+
+FROM eclipse-temurin:17-jdk AS build
+ARG SERVICE_MODULE
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+ARG http_proxy
+ARG https_proxy
+ARG no_proxy
+WORKDIR /workspace
+
+# Layer 1: resolve dependencies (cached unless POM files change)
+COPY pom.xml ./
+COPY .mvn .mvn
+COPY mvnw ./
+COPY .docker .docker
+COPY framework/pom.xml framework/
+COPY api/pom.xml api/
+COPY database-migration/pom.xml database-migration/
+COPY merchant-admin/pom.xml merchant-admin/
+COPY engine/pom.xml engine/
+COPY settlement/pom.xml settlement/
+COPY search/pom.xml search/
+COPY gateway/pom.xml gateway/
+RUN sh .docker/mvn-with-proxy.sh -pl ${SERVICE_MODULE} -am -DskipTests dependency:go-offline
+
+# Layer 2: build application (source changes only affect this layer)
+COPY . .
+RUN sh .docker/mvn-with-proxy.sh -pl ${SERVICE_MODULE} -am -DskipTests install
+RUN sh .docker/mvn-with-proxy.sh -pl ${SERVICE_MODULE} -DskipTests package org.springframework.boot:spring-boot-maven-plugin:3.0.7:repackage
+
+FROM eclipse-temurin:17-jre
+ARG SERVICE_MODULE
+ARG SERVICE_ARTIFACT
+ENV JAVA_OPTS=""
+ENV SPRING_PROFILES_ACTIVE=dev
+WORKDIR /app
+COPY --from=build /workspace/${SERVICE_MODULE}/target/${SERVICE_ARTIFACT}-0.0.1-SNAPSHOT.jar /app/app.jar
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dspring.profiles.active=$SPRING_PROFILES_ACTIVE -jar /app/app.jar"]

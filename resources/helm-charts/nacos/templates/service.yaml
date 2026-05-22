@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nacos.fullname" . }}
+  labels:
+    {{- include "nacos.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ include "nacos.name" . }}
+  ports:
+    - name: http
+      port: {{ .Values.service.httpPort }}
+      targetPort: http
+      {{- if and (eq .Values.service.type "NodePort") .Values.service.nodePorts.http }}
+      nodePort: {{ .Values.service.nodePorts.http }}
+      {{- end }}
+    - name: client-rpc
+      port: {{ .Values.service.clientRpcPort }}
+      targetPort: client-rpc
+      {{- if and (eq .Values.service.type "NodePort") .Values.service.nodePorts.clientRpc }}
+      nodePort: {{ .Values.service.nodePorts.clientRpc }}
+      {{- end }}
+    - name: raft-rpc
+      port: {{ .Values.service.raftRpcPort }}
+      targetPort: raft-rpc
+      {{- if and (eq .Values.service.type "NodePort") .Values.service.nodePorts.raftRpc }}
+      nodePort: {{ .Values.service.nodePorts.raftRpc }}
+      {{- end }}
+

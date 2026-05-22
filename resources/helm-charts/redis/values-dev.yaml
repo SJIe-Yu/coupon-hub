@@ -1,0 +1,10 @@
+environment: dev
+auth:
+  enabled: true
+  password: "123456"
+service:
+  type: NodePort
+  nodePort: 30379
+persistence:
+  enabled: false
+resources: {}

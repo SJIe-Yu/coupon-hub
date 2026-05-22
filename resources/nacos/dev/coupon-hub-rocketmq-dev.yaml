@@ -1,0 +1,6 @@
+rocketmq:
+  name-server: 192.168.252.4:30987
+  producer:
+    send-message-timeout: 2000
+    retry-times-when-send-failed: 1
+    retry-times-when-send-async-failed: 1

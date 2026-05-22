@@ -1,0 +1,17 @@
+environment: dev
+
+mysql:
+  host: mysql-dev-mysql.infra-dev.svc.cluster.local
+  port: 3306
+  username: canal
+  password: canal123456
+  slaveId: 1234
+  filterRegex: "coupon_hub_.*\\..*"
+
+service:
+  type: NodePort
+  nodePorts:
+    canal: 30111
+    metrics: 30112
+
+resources: {}

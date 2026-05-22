@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "canal.fullname" . }}
+  labels:
+    {{- include "canal.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: {{ include "canal.name" . }}
+  ports:
+    - name: canal
+      port: {{ .Values.service.canalPort }}
+      targetPort: canal
+      {{- if and (eq .Values.service.type "NodePort") .Values.service.nodePorts.canal }}
+      nodePort: {{ .Values.service.nodePorts.canal }}
+      {{- end }}
+    - name: metrics
+      port: {{ .Values.service.metricsPort }}
+      targetPort: metrics
+      {{- if and (eq .Values.service.type "NodePort") .Values.service.nodePorts.metrics }}
+      nodePort: {{ .Values.service.nodePorts.metrics }}
+      {{- end }}

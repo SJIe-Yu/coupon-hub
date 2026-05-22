@@ -1,0 +1,44 @@
+# 数据源集合
+dataSources:
+  # 自定义数据源名称，可以是 ds_0 也可以叫 datasource_0 都可以
+  ds_0:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://192.168.252.4:30306/coupon_hub_engine_0?useUnicode=true&characterEncoding=UTF-8&rewriteBatchedStatements=true&allowMultiQueries=true&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root123456
+  ds_1:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://192.168.252.4:30306/coupon_hub_engine_1?useUnicode=true&characterEncoding=UTF-8&rewriteBatchedStatements=true&allowMultiQueries=true&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root123456
+
+rules:
+  - !SHARDING
+    tables: # 需要分片的数据库表集合
+      t_user_coupon:
+        actualDataNodes: ds_0.t_user_coupon_${0..15},ds_1.t_user_coupon_${16..31}
+        databaseStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: user_coupon_database_mod
+        tableStrategy:
+          standard:
+            shardingColumn: user_id
+            shardingAlgorithmName: user_coupon_table_mod
+    shardingAlgorithms: # 分片算法定义集合
+      user_coupon_database_mod:
+        type: CLASS_BASED
+        props:
+          algorithmClassName: edu.seu.couponhub.engine.dao.sharding.DBHashModShardingAlgorithm
+          sharding-count: 32
+          strategy: standard
+      user_coupon_table_mod:
+        type: CLASS_BASED
+        props:
+          algorithmClassName: edu.seu.couponhub.engine.dao.sharding.TableHashModShardingAlgorithm
+          strategy: standard
+props:
+  # 配置 ShardingSphere 默认打印 SQL 执行语句
+  sql-show: true

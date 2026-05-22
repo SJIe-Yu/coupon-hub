@@ -1,0 +1,28 @@
+environment: dev
+
+image:
+  repository: mysql
+  tag: "8.0"
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+replicaCount: 1
+
+auth:
+  rootPassword: root123456
+  database: nacos_config
+  username: nacos
+  password: nacos123456
+
+service:
+  type: NodePort
+  port: 3306
+  nodePort: 30306
+
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClass: ""
+
+resources: {}

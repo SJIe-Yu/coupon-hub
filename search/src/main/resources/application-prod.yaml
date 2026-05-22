@@ -1,0 +1,19 @@
+# 生产环境配置
+spring:
+  data:
+    redis:
+      host: production-redis-host
+      port: 6379
+      password: prod_redis_password
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: production-nacos-host:8848
+        namespace: production-namespace
+      config:
+        server-addr: production-nacos-host:8848
+        namespace: production-namespace
+
+rocketmq:
+  name-server: production-rocketmq-host:9876

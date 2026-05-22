@@ -1,0 +1,184 @@
+name: CD Local k3s
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    branches:
+      - main
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  actions: read
+
+env:
+  APP_NAMESPACE: coupon-hub-dev
+  IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
+  HTTP_PROXY: http://192.168.252.1:8889
+  HTTPS_PROXY: http://192.168.252.1:8889
+  NO_PROXY: 127.0.0.1,localhost,::1,10.42.0.0/16,10.43.0.0/16,192.168.252.0/24,192.168.252.3,192.168.252.4,192.168.252.5,kubernetes.default.svc,.svc,.cluster.local
+
+jobs:
+  deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on:
+      - self-hosted
+      - coupon-hub-k3s
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Download CI deploy plan
+        if: ${{ github.event_name == 'workflow_run' }}
+        uses: actions/download-artifact@v7
+        with:
+          name: ci-deploy-plan
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          path: .ci/deploy-plan
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          overwrite-settings: false
+
+      - name: Verify Maven settings
+        shell: bash
+        run: |
+          set -euo pipefail
+          settings="${HOME}/.m2/settings.xml"
+          if [ ! -f "$settings" ]; then
+            echo "Missing Maven settings: $settings" >&2
+            exit 1
+          fi
+          grep -q "maven.aliyun.com/repository/central" "$settings"
+          grep -q "<proxies>" "$settings"
+          ./mvnw -s "$settings" -N -DskipTests validate
+
+      - name: Ensure Nacos dev configs
+        shell: bash
+        env:
+          NACOS_NAMESPACE: coupon-hub-dev
+          NACOS_GROUP: COUPON_HUB_GROUP
+          # The self-hosted runner runs on the k3s node host, not inside a Pod.
+          # Kubernetes service DNS only resolves inside the cluster, so use the dev NodePort here.
+          NACOS_BASE_URL: http://127.0.0.1:30848/nacos
+        run: |
+          set -euo pipefail
+
+          for _ in {1..30}; do
+            if curl --noproxy '*' -fsS "${NACOS_BASE_URL}/v1/console/health/readiness" >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          curl --noproxy '*' -fsS "${NACOS_BASE_URL}/v1/console/health/readiness" >/dev/null
+
+          curl --noproxy '*' -fsS -X POST "${NACOS_BASE_URL}/v1/console/namespaces" \
+            --data-urlencode "customNamespaceId=${NACOS_NAMESPACE}" \
+            --data-urlencode "namespaceName=${NACOS_NAMESPACE}" \
+            --data-urlencode "namespaceDesc=Coupon Hub dev namespace" >/dev/null || true
+
+          for file in resources/nacos/dev/*.yaml; do
+            data_id="$(basename "$file")"
+            current="$(curl --noproxy '*' -fsS -G "${NACOS_BASE_URL}/v1/cs/configs" \
+              --data-urlencode "tenant=${NACOS_NAMESPACE}" \
+              --data-urlencode "group=${NACOS_GROUP}" \
+              --data-urlencode "dataId=${data_id}" || true)"
+
+            if [[ -n "$current" && "$current" != "config data not exist" ]]; then
+              echo "Nacos config exists, skip: ${NACOS_NAMESPACE}/${NACOS_GROUP}/${data_id}"
+              continue
+            fi
+
+            echo "Publishing missing Nacos config: ${NACOS_NAMESPACE}/${NACOS_GROUP}/${data_id}"
+            curl --noproxy '*' -fsS -X POST "${NACOS_BASE_URL}/v1/cs/configs" \
+              --data-urlencode "tenant=${NACOS_NAMESPACE}" \
+              --data-urlencode "group=${NACOS_GROUP}" \
+              --data-urlencode "dataId=${data_id}" \
+              --data-urlencode "type=yaml" \
+              --data-urlencode "content@${file}" >/dev/null
+          done
+
+      - name: Run Flyway migrations against local k3s MySQL
+        shell: bash
+        env:
+          LOCAL_K3S_MYSQL_JDBC_URL: ${{ secrets.LOCAL_K3S_MYSQL_JDBC_URL }}
+          LOCAL_K3S_MYSQL_USERNAME: ${{ secrets.LOCAL_K3S_MYSQL_USERNAME }}
+          LOCAL_K3S_MYSQL_PASSWORD: ${{ secrets.LOCAL_K3S_MYSQL_PASSWORD }}
+        run: |
+          set -euo pipefail
+          : "${LOCAL_K3S_MYSQL_JDBC_URL:?Missing LOCAL_K3S_MYSQL_JDBC_URL secret}"
+          : "${LOCAL_K3S_MYSQL_USERNAME:?Missing LOCAL_K3S_MYSQL_USERNAME secret}"
+          : "${LOCAL_K3S_MYSQL_PASSWORD:?Missing LOCAL_K3S_MYSQL_PASSWORD secret}"
+
+          # Extract host and port from JDBC URL (jdbc:mysql://host:port/...)
+          host_port="${LOCAL_K3S_MYSQL_JDBC_URL#*://}"
+          host_port="${host_port%%/*}"
+          host="${host_port%%:*}"
+          port="${host_port##*:}"
+
+          mvn_home="${HOME}/.m2/settings.xml"
+          mvn_args=(
+            -pl database-migration
+            -P migrate
+            process-resources
+            flyway:migrate@migrate-merchant-admin
+            flyway:migrate@migrate-engine
+            flyway:migrate@migrate-settlement
+          )
+          if [ -f "$mvn_home" ]; then
+            mvn_args=(-s "$mvn_home" "${mvn_args[@]}")
+          fi
+          ./mvnw "${mvn_args[@]}" \
+            -Ddb.host="${host}" \
+            -Ddb.port="${port}" \
+            -Ddb.user="${LOCAL_K3S_MYSQL_USERNAME}" \
+            -Ddb.password="${LOCAL_K3S_MYSQL_PASSWORD}"
+
+      - name: Deploy services with Helm
+        shell: bash
+        run: |
+          set -euo pipefail
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+
+          plan_file=".ci/deploy-plan/services.txt"
+          if [[ -f "$plan_file" ]]; then
+            mapfile -t services < "$plan_file"
+          else
+            services=(
+              "merchant-admin:coupon-hub-merchant-admin"
+              "engine:coupon-hub-engine"
+              "settlement:coupon-hub-settlement"
+              "search:coupon-hub-search"
+              "gateway:coupon-hub-gateway"
+            )
+          fi
+
+          if [[ "${#services[@]}" -eq 0 ]]; then
+            echo "No service image changes detected; skipping Helm service deployment."
+            exit 0
+          fi
+
+          for item in "${services[@]}"; do
+            module="${item%%:*}"
+            artifact="${item##*:}"
+            release="${artifact}"
+            repository="ghcr.io/${owner}/${artifact}"
+            helm upgrade --install "${release}" resources/helm-charts/coupon-hub-app \
+              -f "resources/helm-charts/coupon-hub-app/values/${module}.yaml" \
+              --namespace "${APP_NAMESPACE}" \
+              --create-namespace \
+              --set image.repository="${repository}" \
+              --set image.tag="${IMAGE_TAG}"
+            sudo k3s kubectl rollout status "deployment/${release}" \
+              --namespace "${APP_NAMESPACE}" \
+              --timeout=1800s
+          done

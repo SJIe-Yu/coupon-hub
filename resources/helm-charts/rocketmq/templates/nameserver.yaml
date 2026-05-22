@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rocketmq.fullname" . }}-nameserver
+  labels:
+    {{- include "rocketmq.labels" . | nindent 4 }}
+    app.kubernetes.io/component: nameserver
+spec:
+  replicas: {{ .Values.nameserver.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: nameserver
+  template:
+    metadata:
+      labels:
+        {{- include "rocketmq.labels" . | nindent 8 }}
+        app.kubernetes.io/component: nameserver
+    spec:
+      containers:
+        - name: nameserver
+          image: {{ .Values.nameserver.image | quote }}
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          command: ["sh", "-c", "/home/rocketmq/rocketmq-*/bin/mqnamesrv"]
+          ports:
+            - name: nameserver
+              containerPort: 9876
+          resources:
+            {{- toYaml .Values.nameserver.resources | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rocketmq.fullname" . }}-nameserver
+  labels:
+    {{- include "rocketmq.labels" . | nindent 4 }}
+    app.kubernetes.io/component: nameserver
+spec:
+  type: {{ .Values.nameserver.service.type }}
+  selector:
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: nameserver
+  ports:
+    - name: nameserver
+      port: {{ .Values.nameserver.service.port }}
+      targetPort: nameserver
+      {{- if and (eq .Values.nameserver.service.type "NodePort") .Values.nameserver.service.nodePort }}
+      nodePort: {{ .Values.nameserver.service.nodePort }}
+      {{- end }}
+

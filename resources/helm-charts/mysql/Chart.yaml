@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mysql
+description: Development MySQL for local k3s.
+type: application
+version: 0.1.0
+appVersion: "8.0"
