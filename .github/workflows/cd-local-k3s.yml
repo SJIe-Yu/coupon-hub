@@ -1,46 +1,26 @@
 name: CD Local k3s
 
 on:
-  workflow_run:
-    workflows:
-      - CI
-    branches:
-      - main
-    types:
-      - completed
   workflow_dispatch:
 
 permissions:
   contents: read
   packages: write
-  actions: read
 
 env:
   APP_NAMESPACE: coupon-hub-dev
-  IMAGE_TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
+  IMAGE_TAG: ${{ github.sha }}
   HTTP_PROXY: http://192.168.252.1:8889
   HTTPS_PROXY: http://192.168.252.1:8889
   NO_PROXY: 127.0.0.1,localhost,::1,10.42.0.0/16,10.43.0.0/16,192.168.252.0/24,192.168.252.3,192.168.252.4,192.168.252.5,kubernetes.default.svc,.svc,.cluster.local
 
 jobs:
   deploy:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on:
       - self-hosted
       - coupon-hub-k3s
     steps:
       - uses: actions/checkout@v5
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
-
-      - name: Download CI deploy plan
-        if: ${{ github.event_name == 'workflow_run' }}
-        uses: actions/download-artifact@v7
-        with:
-          name: ci-deploy-plan
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ github.token }}
-          path: .ci/deploy-plan
 
       - uses: actions/setup-java@v5
         with:

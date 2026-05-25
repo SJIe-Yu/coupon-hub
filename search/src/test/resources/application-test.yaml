@@ -1,0 +1,44 @@
+server:
+  port: 0
+
+spring:
+  application:
+    name: coupon-hub-search-test
+  main:
+    allow-bean-definition-overriding: true
+  autoconfigure:
+    exclude:
+      - org.apache.rocketmq.spring.autoconfigure.RocketMQAutoConfiguration
+      - org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchRepositoriesAutoConfiguration
+  cloud:
+    discovery:
+      enabled: false
+    nacos:
+      discovery:
+        enabled: false
+      config:
+        enabled: false
+        import-check:
+          enabled: false
+  datasource:
+    hikari:
+      maximum-pool-size: 4
+  flyway:
+    enabled: false
+
+rocketmq:
+  name-server: 127.0.0.1:9876
+  producer:
+    group: coupon-hub-test
+
+framework:
+  cache:
+    redis:
+      prefix: "coupon-hub-test:"
+
+logging:
+  level:
+    root: WARN
+    edu.seu.couponhub: INFO

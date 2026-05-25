@@ -29,6 +29,8 @@
         <module>merchant-admin</module> <!-- 后管模块：创建优惠券、店家查看以及管理优惠券、创建优惠券发放批次及分发等 -->
         <!-- 网关模块：提供动态路由、日志记录以及限流熔断等功能 -->
         <module>gateway</module>
+        <!-- 覆盖率聚合报告模块：合并所有子模块的 JaCoCo 数据 -->
+        <module>coverage-report</module>
     </modules>
 
     <properties>
@@ -59,6 +61,7 @@
         <flyway-maven-plugin.version>9.5.1</flyway-maven-plugin.version>
         <spring-boot-maven-plugin.version>3.0.7</spring-boot-maven-plugin.version>
         <testcontainers.version>1.19.8</testcontainers.version>
+        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
         <elasticsearch-spring-boot-starter.version>2.6.12</elasticsearch-spring-boot-starter.version>
         <skywalking-agent.version>9.3.0</skywalking-agent.version>
     </properties>
@@ -218,6 +221,11 @@
                     <artifactId>flyway-maven-plugin</artifactId>
                     <version>${flyway-maven-plugin.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco-maven-plugin.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -229,6 +237,67 @@
                     <source>${java.version}</source>
                     <target>${java.version}</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-maven-plugin.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/dto/**</exclude>
+                        <exclude>**/entity/**</exclude>
+                        <exclude>**/enums/**</exclude>
+                        <exclude>**/constant/**</exclude>
+                        <exclude>**/config/**</exclude>
+                        <exclude>**/dao/entity/**</exclude>
+                        <exclude>**/dao/mapper/**</exclude>
+                        <exclude>**/*Application.class</exclude>
+                        <exclude>**/mq/event/**</exclude>
+                        <exclude>**/mq/base/**</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                        <configuration>
+                            <destFile>${project.build.directory}/jacoco.exec</destFile>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>prepare-agent-integration</id>
+                        <goals>
+                            <goal>prepare-agent-integration</goal>
+                        </goals>
+                        <configuration>
+                            <destFile>${project.build.directory}/jacoco-it.exec</destFile>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <dataFile>${project.build.directory}/jacoco.exec</dataFile>
+                            <outputDirectory>${project.reporting.outputDirectory}/jacoco-ut</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>report-integration</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report-integration</goal>
+                        </goals>
+                        <configuration>
+                            <dataFile>${project.build.directory}/jacoco-it.exec</dataFile>
+                            <outputDirectory>${project.reporting.outputDirectory}/jacoco-it</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

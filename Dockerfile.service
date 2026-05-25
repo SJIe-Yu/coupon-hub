@@ -24,6 +24,7 @@ COPY engine/pom.xml engine/
 COPY settlement/pom.xml settlement/
 COPY search/pom.xml search/
 COPY gateway/pom.xml gateway/
+COPY coverage-report/pom.xml coverage-report/
 RUN sh .docker/mvn-with-proxy.sh -pl ${SERVICE_MODULE} -am -DskipTests dependency:go-offline
 
 # Layer 2: build application (source changes only affect this layer)
