@@ -11,6 +11,7 @@ import edu.seu.couponhub.engine.service.handler.remind.impl.SendEmailRemindCoupo
 import edu.seu.couponhub.engine.service.handler.remind.impl.SendAppMessageRemindCouponTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.skywalking.apm.toolkit.trace.RunnableWrapper;
 import org.redisson.api.RBlockingDeque;
 import org.redisson.api.RDelayedQueue;
 import org.redisson.api.RedissonClient;
@@ -73,7 +74,7 @@ public class CouponTemplateRemindExecutor {
         stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(couponTemplateRemindDTO));
         delayedQueue.offer(key, 10, TimeUnit.SECONDS);
 
-        executorService.execute(() -> {
+        executorService.execute(RunnableWrapper.of(() -> {
             // 向用户发起消息提醒
             switch (Objects.requireNonNull(CouponRemindTypeEnum.getByType(couponTemplateRemindDTO.getType()))) {
                 case APP -> sendAppMessageRemindCouponTemplate.remind(couponTemplateRemindDTO);
@@ -84,7 +85,7 @@ public class CouponTemplateRemindExecutor {
 
             // 提醒用户后删除 Key
             stringRedisTemplate.delete(key);
-        });
+        }));
     }
 
     @Slf4j

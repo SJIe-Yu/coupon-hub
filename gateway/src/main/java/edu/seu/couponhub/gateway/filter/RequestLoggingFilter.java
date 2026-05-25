@@ -2,7 +2,6 @@ package edu.seu.couponhub.gateway.filter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -11,8 +10,6 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.util.UUID;
 
 @Component
 public class RequestLoggingFilter implements GlobalFilter, Ordered {
@@ -24,10 +21,7 @@ public class RequestLoggingFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         HttpMethod method = request.getMethod();
 
-        String traceId = UUID.randomUUID().toString();
-
         long startTime = System.currentTimeMillis();
-        MDC.put("traceId", traceId);
 
         // TODO: 接入统一认证后，在网关解析登录态并透传用户上下文请求头，替代下游服务本地固定用户。
         LOG.info("请求URI: {}", request.getURI());

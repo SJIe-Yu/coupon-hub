@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-es
+  labels:
+    app: {{ .Release.Name }}-es
+spec:
+  serviceName: {{ .Release.Name }}-es
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-es
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-es
+    spec:
+      containers:
+        - name: elasticsearch
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 9200
+              name: http
+            - containerPort: 9300
+              name: transport
+          env:
+            - name: discovery.type
+              value: single-node
+            - name: ES_JAVA_OPTS
+              value: {{ .Values.esJavaOpts | quote }}
+            - name: xpack.security.enabled
+              value: "false"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /usr/share/elasticsearch/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.storage.size }}

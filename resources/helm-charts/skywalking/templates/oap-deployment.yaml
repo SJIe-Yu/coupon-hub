@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-oap
+  labels:
+    app: {{ .Release.Name }}-oap
+spec:
+  progressDeadlineSeconds: {{ .Values.oap.progressDeadlineSeconds }}
+  replicas: {{ .Values.oap.replicas }}
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-oap
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-oap
+    spec:
+      containers:
+        - name: oap
+          image: "{{ .Values.oap.image.repository }}:{{ .Values.oap.image.tag }}"
+          imagePullPolicy: {{ .Values.oap.image.pullPolicy }}
+          ports:
+            - containerPort: 12800
+              name: rest
+            - containerPort: 11800
+              name: grpc
+          env:
+            - name: SW_STORAGE
+              value: elasticsearch
+            - name: SW_STORAGE_ES_CLUSTER_NODES
+              value: {{ .Values.oap.esNodes | quote }}
+            - name: SW_ES_USER
+              value: {{ .Values.oap.esUser | quote }}
+            - name: SW_ES_PASSWORD
+              value: {{ .Values.oap.esPassword | quote }}
+            - name: SW_RECEIVER_LOG_ENABLED
+              value: "true"
+            - name: SW_CORE_RECORD_DATA_TTL
+              value: {{ .Values.oap.recordDataTtl | quote }}
+            - name: SW_CORE_METRICS_DATA_TTL
+              value: {{ .Values.oap.metricsDataTtl | quote }}
+          resources:
+            {{- toYaml .Values.oap.resources | nindent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: 12800
+            initialDelaySeconds: {{ .Values.oap.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.oap.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.oap.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.oap.readinessProbe.failureThreshold }}
+          livenessProbe:
+            tcpSocket:
+              port: 12800
+            initialDelaySeconds: {{ .Values.oap.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.oap.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.oap.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.oap.livenessProbe.failureThreshold }}
+          startupProbe:
+            tcpSocket:
+              port: 12800
+            initialDelaySeconds: {{ .Values.oap.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.oap.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.oap.startupProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.oap.startupProbe.failureThreshold }}

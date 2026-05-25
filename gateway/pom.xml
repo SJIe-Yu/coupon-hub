@@ -44,5 +44,11 @@
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
         </dependency>
+
+        <!-- gateway 不依赖 framework，但 logback-spring.xml 直接使用 SkyWalking layout/appender。 -->
+        <dependency>
+            <groupId>org.apache.skywalking</groupId>
+            <artifactId>apm-toolkit-logback-1.x</artifactId>
+        </dependency>
     </dependencies>
 </project>

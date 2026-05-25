@@ -10,6 +10,13 @@ image:
 
 imagePullSecrets: []
 
+skywalking:
+  enabled: true
+  image: apache/skywalking-java-agent:9.3.0-java17
+  pullPolicy: IfNotPresent
+  volumeName: skywalking-agent
+  agentPath: /skywalking/agent/skywalking-agent.jar
+
 service:
   type: ClusterIP
   port: 10000
@@ -20,5 +27,7 @@ env:
   SPRING_PROFILES_ACTIVE: dev
   NACOS_SERVER_ADDR: nacos-dev.infra-dev.svc.cluster.local:8848
   NACOS_NAMESPACE: coupon-hub-dev
+  SW_AGENT_NAME: coupon-hub-service
+  SW_AGENT_COLLECTOR_BACKEND_SERVICES: skywalking-dev-oap.infra-dev.svc.cluster.local:11800
 
 resources: {}

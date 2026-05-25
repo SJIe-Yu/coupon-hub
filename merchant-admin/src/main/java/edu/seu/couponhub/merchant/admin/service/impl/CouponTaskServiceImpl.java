@@ -27,6 +27,7 @@ import edu.seu.couponhub.merchant.admin.service.CouponTemplateService;
 import edu.seu.couponhub.merchant.admin.service.handler.excel.RowCountListener;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.apache.skywalking.apm.toolkit.trace.RunnableWrapper;
 import org.redisson.api.RBlockingDeque;
 import org.redisson.api.RDelayedQueue;
 import org.redisson.api.RedissonClient;
@@ -95,7 +96,7 @@ public class CouponTaskServiceImpl extends ServiceImpl<CouponTaskMapper, CouponT
         // 100 万数据大概需要 4 秒才能返回前端，如果加上验证将会时间更长，所以这里将最耗时的统计操作异步化
         JSONObject delayJsonObject = JSONObject
                 .of("fileAddress", requestParam.getFileAddress(), "couponTaskId", couponTaskDO.getId());
-        executorService.execute(() -> refreshCouponTaskSendNum(delayJsonObject));
+        executorService.execute(RunnableWrapper.of(() -> refreshCouponTaskSendNum(delayJsonObject)));
 
         // 假设刚把消息提交到线程池，突然应用宕机了，我们通过延迟队列进行兜底 Refresh
         RBlockingDeque<Object> blockingDeque = redissonClient.getBlockingDeque("COUPON_TASK_SEND_NUM_DELAY_QUEUE");
