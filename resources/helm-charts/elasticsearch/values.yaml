@@ -1,0 +1,21 @@
+image:
+  repository: docker.elastic.co/elasticsearch/elasticsearch
+  tag: "7.17.24"
+  pullPolicy: IfNotPresent
+
+esJavaOpts: "-Xms512m -Xmx512m"
+
+resources:
+  requests:
+    memory: "1Gi"
+    cpu: "500m"
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"
+
+storage:
+  size: 10Gi
+
+service:
+  type: NodePort
+  nodePort: 31200

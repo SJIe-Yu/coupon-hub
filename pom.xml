@@ -63,6 +63,7 @@
         <testcontainers.version>1.19.8</testcontainers.version>
         <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
         <elasticsearch-spring-boot-starter.version>2.6.12</elasticsearch-spring-boot-starter.version>
+        <skywalking-agent.version>9.3.0</skywalking-agent.version>
     </properties>
 
     <dependencies>
@@ -190,6 +191,18 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
                 <version>${elasticsearch-spring-boot-starter.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.skywalking</groupId>
+                <artifactId>apm-toolkit-logback-1.x</artifactId>
+                <version>${skywalking-agent.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.skywalking</groupId>
+                <artifactId>apm-toolkit-trace</artifactId>
+                <version>${skywalking-agent.version}</version>
             </dependency>
 
         </dependencies>

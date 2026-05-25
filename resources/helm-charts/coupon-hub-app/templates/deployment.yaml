@@ -20,6 +20,17 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.skywalking.enabled }}
+      initContainers:
+        - name: skywalking-agent
+          image: {{ .Values.skywalking.image | quote }}
+          imagePullPolicy: {{ .Values.skywalking.pullPolicy }}
+          command: ["/bin/sh"]
+          args: ["-c", "cp -R /skywalking/agent /agent/"]
+          volumeMounts:
+            - name: {{ .Values.skywalking.volumeName }}
+              mountPath: /agent
+      {{- end }}
       containers:
         - name: {{ include "coupon-hub-app.name" . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -28,9 +39,23 @@ spec:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
           env:
+            {{- if and .Values.skywalking.enabled (not (hasKey .Values.env "JAVA_TOOL_OPTIONS")) }}
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:{{ .Values.skywalking.agentPath }}"
+            {{- end }}
             {{- range $name, $value := .Values.env }}
             - name: {{ $name }}
               value: {{ $value | quote }}
             {{- end }}
+          {{- if .Values.skywalking.enabled }}
+          volumeMounts:
+            - name: {{ .Values.skywalking.volumeName }}
+              mountPath: /skywalking
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+      {{- if .Values.skywalking.enabled }}
+      volumes:
+        - name: {{ .Values.skywalking.volumeName }}
+          emptyDir: {}
+      {{- end }}

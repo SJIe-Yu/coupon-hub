@@ -1,0 +1,48 @@
+oap:
+  replicas: 1
+  progressDeadlineSeconds: 1800
+  image:
+    repository: apache/skywalking-oap-server
+    tag: "10.1.0"
+    pullPolicy: IfNotPresent
+  esNodes: "es-dev-es.infra-dev.svc.cluster.local:9200"
+  esUser: ""
+  esPassword: ""
+  recordDataTtl: "3"
+  metricsDataTtl: "7"
+  startupProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 180
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 12
+  livenessProbe:
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 3
+    failureThreshold: 6
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+ui:
+  image:
+    repository: apache/skywalking-ui
+    tag: "10.1.0"
+    pullPolicy: IfNotPresent
+  nodePort: 31280
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "200m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"

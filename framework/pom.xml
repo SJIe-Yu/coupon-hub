@@ -57,5 +57,17 @@
             <groupId>org.redisson</groupId>
             <artifactId>redisson-spring-boot-starter</artifactId>
         </dependency>
+
+        <!-- SkyWalking Logback 集成：将 Trace ID 注入日志 MDC -->
+        <dependency>
+            <groupId>org.apache.skywalking</groupId>
+            <artifactId>apm-toolkit-logback-1.x</artifactId>
+        </dependency>
+
+        <!-- SkyWalking Trace 工具包：支持手动获取 Trace ID 等 -->
+        <dependency>
+            <groupId>org.apache.skywalking</groupId>
+            <artifactId>apm-toolkit-trace</artifactId>
+        </dependency>
     </dependencies>
 </project>

@@ -10,6 +10,7 @@ import edu.seu.couponhub.distribution.service.basics.DistributionExecuteStrategy
 import edu.seu.couponhub.distribution.service.basics.DistributionStrategyChoose;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.skywalking.apm.toolkit.trace.ConsumerWrapper;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
 import org.springframework.stereotype.Component;
@@ -40,9 +41,9 @@ public class CouponExecuteSendMessageConsumer implements RocketMQListener<Messag
         // 获取通知类型调用发送接口执行通知逻辑
         String notifyType = messageWrapper.getMessage().getNotifyType();
         List<String> notifyTypes = StrUtil.split(notifyType, ",");
-        notifyTypes.parallelStream().forEach(each -> {
+        notifyTypes.parallelStream().forEach(ConsumerWrapper.of(each -> {
             DistributionExecuteStrategy executeStrategy = distributionStrategyChoose.choose(SendMessageMarkCovertEnum.fromType(Integer.parseInt(each)));
             executeStrategy.executeResp(null);
-        });
+        }));
     }
 }

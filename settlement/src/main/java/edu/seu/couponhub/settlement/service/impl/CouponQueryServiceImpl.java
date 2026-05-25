@@ -15,6 +15,7 @@ import edu.seu.couponhub.settlement.dto.resp.QueryCouponsDetailRespDTO;
 import edu.seu.couponhub.settlement.dto.resp.QueryCouponsRespDTO;
 import edu.seu.couponhub.settlement.service.CouponQueryService;
 import lombok.RequiredArgsConstructor;
+import org.apache.skywalking.apm.toolkit.trace.RunnableWrapper;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -98,11 +99,11 @@ public class CouponQueryServiceImpl implements CouponQueryService {
         // Step 2: 并行处理 goodsEmptyList 和 goodsNotEmptyList 中的每个元素
         CompletableFuture<Void> emptyGoodsTasks = CompletableFuture.allOf(
                 goodsEmptyList.stream()
-                        .map(each -> CompletableFuture.runAsync(() -> {
+                        .map(each -> CompletableFuture.runAsync(RunnableWrapper.of(() -> {
                             QueryCouponsDetailRespDTO resultCouponDetail = BeanUtil.toBean(each, QueryCouponsDetailRespDTO.class);
                             CouponConsumeRule consumeRule = CouponRuleUtil.parseConsumeRule(each.getConsumeRule());
                             handleCouponLogic(resultCouponDetail, consumeRule, requestParam.getOrderAmount(), availableCouponList, notAvailableCouponList);
-                        }, executorService))
+                        }), executorService))
                         .toArray(CompletableFuture[]::new)
         );
 
@@ -110,7 +111,7 @@ public class CouponQueryServiceImpl implements CouponQueryService {
                 .collect(Collectors.toMap(QueryCouponGoodsReqDTO::getGoodsNumber, Function.identity()));
         CompletableFuture<Void> notEmptyGoodsTasks = CompletableFuture.allOf(
                 goodsNotEmptyList.stream()
-                        .map(each -> CompletableFuture.runAsync(() -> {
+                        .map(each -> CompletableFuture.runAsync(RunnableWrapper.of(() -> {
                             QueryCouponsDetailRespDTO resultCouponDetail = BeanUtil.toBean(each, QueryCouponsDetailRespDTO.class);
                             QueryCouponGoodsReqDTO couponGoods = goodsRequestMap.get(each.getGoods());
                             if (couponGoods == null) {
@@ -119,16 +120,16 @@ public class CouponQueryServiceImpl implements CouponQueryService {
                                 CouponConsumeRule consumeRule = CouponRuleUtil.parseConsumeRule(each.getConsumeRule());
                                 handleCouponLogic(resultCouponDetail, consumeRule, couponGoods.getGoodsAmount(), availableCouponList, notAvailableCouponList);
                             }
-                        }, executorService))
+                        }), executorService))
                         .toArray(CompletableFuture[]::new)
         );
 
         // Step 3: 等待两个异步任务集合完成
         CompletableFuture.allOf(emptyGoodsTasks, notEmptyGoodsTasks)
-                .thenRun(() -> {
+                .thenRun(RunnableWrapper.of(() -> {
                     // 与业内标准一致，按最终优惠力度从大到小排序
                     availableCouponList.sort((c1, c2) -> c2.getCouponAmount().compareTo(c1.getCouponAmount()));
-                })
+                }))
                 .join();
 
         // 构建最终结果并返回

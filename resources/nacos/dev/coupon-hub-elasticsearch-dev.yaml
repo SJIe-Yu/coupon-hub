@@ -1,4 +1,5 @@
 spring:
   # 为了极速安装和本地调试，开发环境 ES 不设置密码。
+  # 本地启动默认连接 k3s NodePort；集群内服务通过 ELASTICSEARCH_URIS 覆盖为 Service DNS。
   elasticsearch:
-    uris: 127.0.0.1:9200
+    uris: ${ELASTICSEARCH_URIS:192.168.252.4:31200}
