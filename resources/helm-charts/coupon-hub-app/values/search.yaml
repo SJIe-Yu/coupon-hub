@@ -9,5 +9,6 @@ env:
   SPRING_PROFILES_ACTIVE: dev
   NACOS_SERVER_ADDR: nacos-dev-nacos.infra-dev.svc.cluster.local:8848
   NACOS_NAMESPACE: coupon-hub-dev
+  ELASTICSEARCH_URIS: es-dev-es.infra-dev.svc.cluster.local:9200
   SW_AGENT_NAME: coupon-hub-search
   SW_AGENT_COLLECTOR_BACKEND_SERVICES: skywalking-dev-oap.infra-dev.svc.cluster.local:11800

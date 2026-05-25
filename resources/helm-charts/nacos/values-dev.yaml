@@ -11,8 +11,8 @@ service:
   type: NodePort
   nodePorts:
     http: 30848
-    clientRpc: 30948
-    raftRpc: 30949
+    clientRpc: 31848
+    raftRpc: 31849
 persistence:
   enabled: false
 resources: {}
