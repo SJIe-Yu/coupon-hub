@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   packages: write
   pull-requests: write
 
@@ -206,15 +207,37 @@ jobs:
           distribution: temurin
           java-version: '17'
           cache: maven
+      - name: Check JaCoCo unit test artifact
+        id: jacoco_ut_artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
+            --jq '.artifacts[].name' | grep -Fxq 'jacoco-ut-exec'; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Download JaCoCo unit test data
-        continue-on-error: true
+        if: steps.jacoco_ut_artifact.outputs.exists == 'true'
         uses: actions/download-artifact@v7
         with:
           name: jacoco-ut-exec
           path: .
-      - name: Download JaCoCo integration test data
+      - name: Check JaCoCo integration test artifact
         if: needs.integration-test.result == 'success'
-        continue-on-error: true
+        id: jacoco_it_artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" \
+            --jq '.artifacts[].name' | grep -Fxq 'jacoco-it-exec'; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Download JaCoCo integration test data
+        if: needs.integration-test.result == 'success' && steps.jacoco_it_artifact.outputs.exists == 'true'
         uses: actions/download-artifact@v7
         with:
           name: jacoco-it-exec
